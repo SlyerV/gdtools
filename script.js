@@ -1,61 +1,73 @@
 const faces = [
   {
     id: "00",
+    fileName: "na",
     label: "Difficulty face 00",
     src: "assets/diffIcon_00_btn_001.png",
   },
   {
     id: "auto",
+    fileName: "auto",
     label: "Auto difficulty face",
     src: "assets/diffIcon_auto_btn_001.png",
   },
   {
     id: "01",
+    fileName: "easy",
     label: "Difficulty face 01",
     src: "assets/diffIcon_01_btn_001.png",
   },
   {
     id: "02",
+    fileName: "normal",
     label: "Difficulty face 02",
     src: "assets/diffIcon_02_btn_001.png",
   },
   {
     id: "03",
+    fileName: "hard",
     label: "Difficulty face 03",
     src: "assets/diffIcon_03_btn_001.png",
   },
   {
     id: "04",
+    fileName: "harder",
     label: "Difficulty face 04",
     src: "assets/diffIcon_04_btn_001.png",
   },
   {
     id: "05",
+    fileName: "insane",
     label: "Difficulty face 05",
     src: "assets/diffIcon_05_btn_001.png",
   },
   {
     id: "07",
+    fileName: "easyDemon",
     label: "Difficulty face 07",
     src: "assets/diffIcon_07_btn_001.png",
   },
   {
     id: "08",
+    fileName: "mediumDemon",
     label: "Difficulty face 08",
     src: "assets/diffIcon_08_btn_001.png",
   },
   {
     id: "06",
+    fileName: "hardDemon",
     label: "Difficulty face 06",
     src: "assets/diffIcon_06_btn_001.png",
   },
   {
     id: "09",
+    fileName: "insaneDemon",
     label: "Difficulty face 09",
     src: "assets/diffIcon_09_btn_001.png",
   },
   {
     id: "10",
+    fileName: "extremeDemon",
     label: "Difficulty face 10",
     src: "assets/diffIcon_10_btn_001.png",
   },
@@ -89,6 +101,14 @@ const ratings = {
   },
 };
 
+const ratingFileNames = {
+  blank: "",
+  featured: "featured",
+  epic: "epic",
+  legendary: "legendary",
+  mythic: "mythic",
+};
+
 const previewCenter = {
   x: 135,
   y: 135,
@@ -107,11 +127,17 @@ const editButton = document.querySelector("#editIcon");
 const editButtonImage = editButton.querySelector("img");
 const resetButton = document.querySelector("#resetCanvas");
 const actionButtons = document.querySelector(".action-buttons");
+const importFaceButton = document.querySelector("#importFaceButton");
+const faceFileInput = document.querySelector("#faceFileInput");
+const customFaceButtons = document.querySelector("#customFaceButtons");
 const ratingButtons = document.querySelectorAll(".rating-button");
 const imageCache = new Map();
 
 let currentFaceIndex = faces.findIndex((face) => face.id === "01");
 let currentRating = "blank";
+let customFaceCounter = 0;
+let currentCustomFaceId = null;
+let customFaces = [];
 let iconObjects = [];
 let isEditorOpen = false;
 let selectedObjectId = null;
@@ -147,23 +173,50 @@ function rotatePoint(point, angle) {
   };
 }
 
-function makeEditableObject(id, image, centerX, centerY, layer) {
+function makeEditableObject(id, image, centerX, centerY, layer, dimensions = null) {
   return {
     id,
     image,
     x: centerX,
     y: centerY,
-    width: image.naturalWidth,
-    height: image.naturalHeight,
+    width: dimensions?.width ?? image.naturalWidth,
+    height: dimensions?.height ?? image.naturalHeight,
     rotation: 0,
     layer,
   };
 }
 
+function getEasyFaceIndex() {
+  return faces.findIndex((face) => face.id === "01");
+}
+
+function getSelectedCustomFace() {
+  return customFaces.find((face) => face.id === currentCustomFaceId) || null;
+}
+
+function sanitizeFileName(fileName) {
+  return fileName
+    .replace(/\.[^/.]+$/, "")
+    .replace(/[<>:"/\\|?*\u0000-\u001f]/g, "")
+    .trim()
+    .replace(/\s+/g, " ") || "custom";
+}
+
+function getCurrentFaceLabel() {
+  const customFace = getSelectedCustomFace();
+
+  if (customFace) {
+    return customFace.label;
+  }
+
+  return faces[currentFaceIndex].label;
+}
+
 async function buildDefaultObjects() {
-  const face = faces[currentFaceIndex];
   const rating = ratings[currentRating];
-  const faceImage = await loadImage(face.src);
+  const customFace = getSelectedCustomFace();
+  const normalFace = faces[currentFaceIndex];
+  const faceImage = await loadImage(customFace?.src ?? normalFace.src);
   const nextObjects = [];
 
   if (rating) {
@@ -186,6 +239,12 @@ async function buildDefaultObjects() {
       previewCenter.x,
       previewCenter.y,
       1,
+      customFace
+        ? {
+            width: customFace.width,
+            height: customFace.height,
+          }
+        : null,
     ),
   );
 
@@ -318,8 +377,8 @@ function drawSelectionBox(object) {
 }
 
 function renderCanvas(animate = false) {
-  const face = faces[currentFaceIndex];
   const rating = ratings[currentRating];
+  const faceLabel = getCurrentFaceLabel();
 
   context.clearRect(0, 0, canvas.width, canvas.height);
   iconObjects
@@ -338,7 +397,7 @@ function renderCanvas(animate = false) {
 
   canvas.setAttribute(
     "aria-label",
-    `${rating ? `${rating.label} ` : ""}${face.label} preview`,
+    `${rating ? `${rating.label} ` : ""}${faceLabel} preview`,
   );
 
   if (animate) {
@@ -571,6 +630,14 @@ function endCanvasEdit(event) {
 }
 
 async function moveFace(direction) {
+  if (currentCustomFaceId) {
+    currentCustomFaceId = null;
+    currentFaceIndex = getEasyFaceIndex();
+    renderCustomFaceButtons();
+    await resetCanvasObjects(true);
+    return;
+  }
+
   currentFaceIndex = (currentFaceIndex + direction + faces.length) % faces.length;
   await resetCanvasObjects(true);
 }
@@ -614,8 +681,78 @@ function resetCurrentCanvas() {
   resetCanvasObjects(true);
 }
 
+function renderCustomFaceButtons() {
+  customFaceButtons.hidden = customFaces.length === 0;
+  customFaceButtons.replaceChildren();
+
+  customFaces.forEach((customFace) => {
+    const button = document.createElement("button");
+    const image = document.createElement("img");
+    const isSelected = customFace.id === currentCustomFaceId;
+
+    button.className = "custom-face-button";
+    button.type = "button";
+    button.dataset.customFaceId = customFace.id;
+    button.setAttribute("aria-label", customFace.label);
+    button.setAttribute("aria-pressed", String(isSelected));
+    button.classList.toggle("is-selected", isSelected);
+    image.src = customFace.src;
+    image.alt = "";
+    button.append(image);
+    button.addEventListener("click", () => selectCustomFace(customFace.id));
+    customFaceButtons.append(button);
+  });
+}
+
+async function selectCustomFace(customFaceId) {
+  if (currentCustomFaceId === customFaceId) {
+    currentCustomFaceId = null;
+    currentFaceIndex = getEasyFaceIndex();
+  } else {
+    currentCustomFaceId = customFaceId;
+  }
+
+  renderCustomFaceButtons();
+  await resetCanvasObjects(true);
+}
+
+async function importCustomFace(file) {
+  if (!file) {
+    return;
+  }
+
+  const src = URL.createObjectURL(file);
+  const image = await loadImage(src);
+  const scale = Math.min(160 / image.naturalWidth, 144 / image.naturalHeight, 1);
+  const customFace = {
+    id: `custom-${customFaceCounter}`,
+    fileName: sanitizeFileName(file.name),
+    label: `Custom difficulty face ${customFaceCounter + 1}`,
+    src,
+    width: image.naturalWidth * scale,
+    height: image.naturalHeight * scale,
+  };
+
+  customFaceCounter += 1;
+  customFaces.push(customFace);
+  currentCustomFaceId = customFace.id;
+  renderCustomFaceButtons();
+  await resetCanvasObjects(true);
+}
+
+function getDownloadFileName(face) {
+  const difficultyName = face.fileName ?? sanitizeFileName(face.label);
+  const ratingName = ratingFileNames[currentRating];
+
+  if (!ratingName) {
+    return `${difficultyName}.png`;
+  }
+
+  return `${difficultyName}-${ratingName}.png`;
+}
+
 function downloadIcon() {
-  const face = faces[currentFaceIndex];
+  const face = getSelectedCustomFace() || faces[currentFaceIndex];
   const previousEditorState = isEditorOpen;
   const previousSelection = selectedObjectId;
 
@@ -634,7 +771,7 @@ function downloadIcon() {
 
     const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
-    link.download = `gd-${currentRating}-${face.id}.png`;
+    link.download = getDownloadFileName(face);
     link.href = url;
     document.body.append(link);
     link.click();
@@ -648,6 +785,11 @@ nextButton.addEventListener("click", () => moveFace(1));
 downloadButton.addEventListener("click", downloadIcon);
 editButton.addEventListener("click", toggleEditor);
 resetButton.addEventListener("click", resetCurrentCanvas);
+importFaceButton.addEventListener("click", () => faceFileInput.click());
+faceFileInput.addEventListener("change", () => {
+  importCustomFace(faceFileInput.files?.[0]);
+  faceFileInput.value = "";
+});
 
 ratingButtons.forEach((button) => {
   button.addEventListener("click", () => selectRating(button.dataset.rating));

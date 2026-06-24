@@ -36,6 +36,8 @@
             </button>
           </div>
 
+          <div class="custom-face-buttons" id="customFaceButtons" aria-label="Custom difficulty face selector" hidden></div>
+
           <div class="rating-buttons" aria-label="Rating selector">
             <button class="rating-button is-selected" type="button" data-rating="blank" aria-label="No rating" aria-pressed="true"></button>
             <button class="rating-button" type="button" data-rating="featured" aria-label="Featured rating" aria-pressed="false">
@@ -51,6 +53,11 @@
               <img src="assets/GJ_epicCoin3_001.png" alt="" />
             </button>
           </div>
+
+          <button class="import-face-button" id="importFaceButton" type="button" aria-label="Import custom difficulty face">
+            <img src="assets/GT_importFace.png" alt="" />
+          </button>
+          <input class="face-file-input" id="faceFileInput" type="file" accept="image/png,image/jpeg,image/webp,image/gif" />
         </div>
 
         <div class="action-buttons">
@@ -58,12 +65,12 @@
             <img src="assets/GJ_getSongInfoBtn_001.png" alt="" />
           </button>
 
-          <button class="download-button" id="downloadIcon" type="button" aria-label="Download generated icon">
-            <img src="assets/GJ_download.png" alt="" />
-          </button>
-
           <button class="edit-button" id="editIcon" type="button" aria-label="Open canvas editor" aria-pressed="false">
             <img src="assets/GJ_viewLevelsBtn_001.png" alt="" />
+          </button>
+
+          <button class="download-button" id="downloadIcon" type="button" aria-label="Download generated icon">
+            <img src="assets/GJ_download.png" alt="" />
           </button>
         </div>
       </section>
