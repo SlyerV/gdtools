@@ -116,6 +116,7 @@ const previewCenter = {
 
 const snapDistance = 6;
 const rotateSnapRadians = Math.PI / 36;
+const rotationSnapAngles = [0, Math.PI / 2, Math.PI, (Math.PI * 3) / 2];
 const minObjectSize = 24;
 
 const canvas = document.querySelector("#iconCanvas");
@@ -376,6 +377,37 @@ function drawSelectionBox(object) {
   context.restore();
 }
 
+function drawRotationPopup(object) {
+  const rotateHandle = getRotateHandle(object);
+  const text = formatRotationDegrees(object.rotation);
+  const paddingX = 8;
+  const boxHeight = 24;
+
+  context.save();
+  context.font = "bold 13px Arial, Helvetica, sans-serif";
+  context.textBaseline = "middle";
+
+  const textWidth = context.measureText(text).width;
+  const boxWidth = textWidth + paddingX * 2;
+  const boxX = Math.max(
+    4,
+    Math.min(canvas.width - boxWidth - 4, rotateHandle.x - boxWidth / 2),
+  );
+  const boxY = Math.max(4, rotateHandle.y - 38);
+
+  context.fillStyle = "rgb(0 0 0 / 0.72)";
+  context.strokeStyle = "rgb(255 255 255 / 0.85)";
+  context.lineWidth = 1;
+  context.beginPath();
+  context.roundRect(boxX, boxY, boxWidth, boxHeight, 5);
+  context.fill();
+  context.stroke();
+
+  context.fillStyle = "#ffffff";
+  context.fillText(text, boxX + paddingX, boxY + boxHeight / 2);
+  context.restore();
+}
+
 function renderCanvas(animate = false) {
   const rating = ratings[currentRating];
   const faceLabel = getCurrentFaceLabel();
@@ -392,6 +424,10 @@ function renderCanvas(animate = false) {
 
     if (selectedObject) {
       drawSelectionBox(selectedObject);
+
+      if (dragState?.mode === "rotate") {
+        drawRotationPopup(selectedObject);
+      }
     }
   }
 
@@ -424,6 +460,21 @@ function getCanvasPoint(event) {
 
 function distance(pointA, pointB) {
   return Math.hypot(pointA.x - pointB.x, pointA.y - pointB.y);
+}
+
+function normalizeRotation(rotation) {
+  const fullTurn = Math.PI * 2;
+  return ((rotation % fullTurn) + fullTurn) % fullTurn;
+}
+
+function getShortestAngleDistance(angleA, angleB) {
+  return Math.abs(Math.atan2(Math.sin(angleA - angleB), Math.cos(angleA - angleB)));
+}
+
+function formatRotationDegrees(rotation) {
+  const degrees = (normalizeRotation(rotation) * 180) / Math.PI;
+  const roundedDegrees = Math.round(degrees * 10) / 10;
+  return `${roundedDegrees === 360 ? "0.0" : roundedDegrees.toFixed(1)} deg`;
 }
 
 function getCornerHit(point, object) {
@@ -581,8 +632,13 @@ function rotateSelectedObject(point) {
   );
   let nextRotation = dragState.startRotation + nextAngle - dragState.startAngle;
 
-  if (Math.abs(Math.sin(nextRotation)) <= Math.sin(rotateSnapRadians)) {
-    nextRotation = 0;
+  const normalizedRotation = normalizeRotation(nextRotation);
+  const snapAngle = rotationSnapAngles.find(
+    (angle) => getShortestAngleDistance(normalizedRotation, angle) <= rotateSnapRadians,
+  );
+
+  if (snapAngle !== undefined) {
+    nextRotation = snapAngle;
   }
 
   dragState.object.rotation = nextRotation;

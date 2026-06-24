@@ -1,7 +1,7 @@
 :root {
   color-scheme: light;
   font-family: Arial, Helvetica, sans-serif;
-  background: #d7d7d7;
+  background: #075db8;
 }
 
 * {
@@ -11,7 +11,12 @@
 body {
   min-height: 100vh;
   margin: 0;
-  background: #d7d7d7;
+  background-color: #075db8;
+  background-image: url("assets/GT_background.jpg");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-attachment: fixed;
 }
 
 button {
