@@ -9,6 +9,7 @@
 :root {
   color-scheme: light;
   font-family: "Pusab", Impact, "Arial Black", system-ui, sans-serif;
+  --back-button-space: clamp(120px, 17vw, 172px);
   background: #075db8;
 }
 
@@ -71,8 +72,13 @@ button {
   padding: clamp(28px, 5vw, 56px) 20px 48px;
 }
 
+picture {
+  width: min(calc(100vw - (var(--back-button-space) * 2)), 860px);
+  display: block;
+}
+
 .title {
-  width: min(94vw, 920px);
+  width: 100%;
   height: auto;
   display: block;
   image-rendering: auto;
@@ -320,6 +326,10 @@ button {
 }
 
 @media (max-width: 520px) {
+  :root {
+    --back-button-space: clamp(86px, 23vw, 100px);
+  }
+
   .workspace {
     grid-template-columns: 1fr;
     gap: 18px;
