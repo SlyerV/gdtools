@@ -3,78 +3,57 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>GD Rating Generator</title>
+    <title>GDTools</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <main class="app" aria-label="Geometry Dash rating generator">
-      <img
-        class="title"
-        src="assets/GT_title.png"
-        alt="GD Rating Generator"
-      />
+    <main class="home" aria-label="GDTools main page">
+      <button class="credits-button" id="creditsButton" type="button" aria-label="Open credits">
+        <img src="main-assets/GT_credits.png" alt="" />
+      </button>
 
-      <section class="workspace" aria-label="Icon generator">
-        <div class="selector-stack">
-          <div class="generator" aria-label="Difficulty face selector">
-            <button class="arrow-button" id="previousFace" type="button" aria-label="Previous difficulty face">
-              <img src="assets/edit_leftBtn_001.png" alt="" />
-            </button>
+      <section class="home-panel">
+        <h1>GDTools</h1>
 
-            <div class="face-stage" aria-live="polite">
-              <canvas
-                class="preview-canvas"
-                id="iconCanvas"
-                width="270"
-                height="270"
-                aria-label="Generated difficulty icon preview"
-              ></canvas>
-            </div>
-
-            <button class="arrow-button" id="nextFace" type="button" aria-label="Next difficulty face">
-              <img src="assets/edit_rightBtn_001.png" alt="" />
-            </button>
-          </div>
-
-          <div class="custom-face-buttons" id="customFaceButtons" aria-label="Custom difficulty face selector" hidden></div>
-
-          <div class="rating-buttons" aria-label="Rating selector">
-            <button class="rating-button is-selected" type="button" data-rating="blank" aria-label="No rating" aria-pressed="true"></button>
-            <button class="rating-button" type="button" data-rating="featured" aria-label="Featured rating" aria-pressed="false">
-              <img src="assets/GJ_featuredCoin_001.png" alt="" />
-            </button>
-            <button class="rating-button" type="button" data-rating="epic" aria-label="Epic rating" aria-pressed="false">
-              <img src="assets/GJ_epicCoin_001.png" alt="" />
-            </button>
-            <button class="rating-button" type="button" data-rating="legendary" aria-label="Legendary rating" aria-pressed="false">
-              <img src="assets/GJ_epicCoin2_001.png" alt="" />
-            </button>
-            <button class="rating-button" type="button" data-rating="mythic" aria-label="Mythic rating" aria-pressed="false">
-              <img src="assets/GJ_epicCoin3_001.png" alt="" />
-            </button>
-          </div>
-
-          <button class="import-face-button" id="importFaceButton" type="button" aria-label="Import custom difficulty face">
-            <img src="assets/GT_importFace.png" alt="" />
-          </button>
-          <input class="face-file-input" id="faceFileInput" type="file" accept="image/png,image/jpeg,image/webp,image/gif" />
-        </div>
-
-        <div class="action-buttons">
-          <button class="reset-button" id="resetCanvas" type="button" aria-label="Reset canvas edits">
-            <img src="assets/GJ_getSongInfoBtn_001.png" alt="" />
-          </button>
-
-          <button class="edit-button" id="editIcon" type="button" aria-label="Open canvas editor" aria-pressed="false">
-            <img src="assets/GJ_viewLevelsBtn_001.png" alt="" />
-          </button>
-
-          <button class="download-button" id="downloadIcon" type="button" aria-label="Download generated icon">
-            <img src="assets/GJ_download.png" alt="" />
-          </button>
-        </div>
+        <nav class="tool-links" aria-label="Tool navigation">
+        <a class="tool-link" href="rating/index.html">Rating Generator</a>
+        <a class="tool-link" href="runs/index.html">Runs Calculator</a>
+        </nav>
       </section>
     </main>
+
+    <div class="credits-modal" id="creditsModal" aria-hidden="true">
+      <div class="credits-backdrop" data-close-credits></div>
+
+      <section class="credits-card" role="dialog" aria-modal="true" aria-labelledby="creditsTitle">
+        <button class="credits-close" type="button" aria-label="Close credits" data-close-credits>
+          <img src="main-assets/GJ_closeBtn_001.png" alt="" />
+        </button>
+
+        <button class="credits-arrow credits-arrow-left" id="creditsPrev" type="button" aria-label="Previous credits page">
+          <img src="main-assets/GJ_arrow_03_001.png" alt="" />
+        </button>
+
+        <div class="credits-page is-active" data-credits-page="0">
+          <h2 id="creditsTitle">Creator</h2>
+          <p class="credit-name">Scythster</p>
+          <a class="youtube-link" href="https://youtube.com/@Scythster" target="_blank" rel="noreferrer" aria-label="Scythster on YouTube">
+            <img src="main-assets/gj_ytIcon_001.png" alt="" />
+          </a>
+        </div>
+
+        <div class="credits-page" data-credits-page="1">
+          <h2>Inspo</h2>
+          <p class="credit-name">GD Colon</p>
+          <p class="credit-role">Most Assets</p>
+          <p class="credit-name credit-name-small">RobTop</p>
+        </div>
+
+        <button class="credits-arrow credits-arrow-right" id="creditsNext" type="button" aria-label="Next credits page">
+          <img src="main-assets/GJ_arrow_03_001.png" alt="" />
+        </button>
+      </section>
+    </div>
 
     <script src="script.js"></script>
   </body>
